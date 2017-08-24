@@ -18,12 +18,20 @@ package io.plaidapp.util.glide;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.support.rastermill.FrameSequenceDrawable;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.GlideBuilder;
+import com.bumptech.glide.Registry;
 import com.bumptech.glide.annotation.GlideModule;
 import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.load.ImageHeaderParser;
 import com.bumptech.glide.module.AppGlideModule;
 import com.bumptech.glide.request.RequestOptions;
+
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * Glide module configurations
@@ -43,7 +51,18 @@ public class PlaidGlideModule extends AppGlideModule {
     }
 
     @Override
+    public void registerComponents(Context context, Glide glide, Registry registry) {
+        final List<ImageHeaderParser> imageHeaderParsers = registry.getImageHeaderParsers();
+        registry.prepend(InputStream.class, FrameSequenceDrawable.class,
+                new InputStreamFrameSequenceGifDecoder(imageHeaderParsers, glide.getArrayPool(),
+                        glide.getBitmapPool()));
+        registry.prepend(ByteBuffer.class, FrameSequenceDrawable.class,
+                new ByteBufferFrameSequenceGifDecoder(imageHeaderParsers, glide.getBitmapPool()));
+    }
+
+    @Override
     public boolean isManifestParsingEnabled() {
         return false;
     }
+
 }

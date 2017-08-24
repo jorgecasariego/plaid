@@ -15,17 +15,18 @@
 package io.plaidapp.util.glide
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
+import android.support.rastermill.FrameSequenceDrawable
 import android.support.v4.content.ContextCompat
 import android.support.v7.graphics.Palette
-import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.bumptech.glide.request.target.DrawableImageViewTarget
 import com.bumptech.glide.request.transition.Transition
 import io.plaidapp.R
 import io.plaidapp.ui.widget.BadgedFourThreeImageView
 import io.plaidapp.util.ColorUtils
-import io.plaidapp.util.isAnimated
 import io.plaidapp.util.ViewUtils
+import io.plaidapp.util.isAnimated
 
 /**
  * A Glide [ViewTarget] for [BadgedFourThreeImageView]s. It applies a badge for animated
@@ -38,18 +39,11 @@ class DribbbleTarget(
 
     override fun onResourceReady(drawable: Drawable, transition: Transition<in Drawable>?) {
         super.onResourceReady(drawable, transition)
-        val isAnimated = drawable.isAnimated()
-        if (!autoplayGifs && isAnimated) {
-            (drawable as GifDrawable).stop()
-        }
         val bitmap = drawable.getBitmap() ?: return
         val badgedImageView = view as BadgedFourThreeImageView
-        if (!isAnimated) {
-            Palette.from(bitmap)
-                    .clearFilters()
-                    .generate(this)
-        } else {
-            Palette.from(bitmap).clearFilters().generate(this)
+        Palette.from(bitmap).clearFilters().generate(this)
+        if (drawable is FrameSequenceDrawable) {
+            drawable.setAutoPlay(autoplayGifs)
             // look at the corner to determine the gif badge color
             val cornerSize = (56 * view.context.resources.displayMetrics.scaledDensity).toInt()
             val corner = Bitmap.createBitmap(bitmap,
@@ -58,21 +52,17 @@ class DribbbleTarget(
                     cornerSize, cornerSize)
             val isDark = ColorUtils.isDark(corner)
             corner.recycle()
-            badgedImageView.setBadgeColor(ContextCompat.getColor(getView().context,
+            badgedImageView.setBadgeColor(ContextCompat.getColor(badgedImageView.context,
                     if (isDark) R.color.gif_badge_dark_image else R.color.gif_badge_light_image))
         }
     }
 
     override fun onStart() {
-        if (autoplayGifs) {
-            super.onStart()
-        }
+        if (autoplayGifs) super.onStart()
     }
 
     override fun onStop() {
-        if (autoplayGifs) {
-            super.onStop()
-        }
+        if (autoplayGifs) super.onStop()
     }
 
     override fun onGenerated(palette: Palette) {

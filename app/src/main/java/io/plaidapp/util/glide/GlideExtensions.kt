@@ -18,13 +18,14 @@ package io.plaidapp.util.glide
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.support.rastermill.FrameSequenceDrawable
 
 import com.bumptech.glide.load.resource.gif.GifDrawable
 
 fun Drawable.getBitmap(): Bitmap? {
     if (this is BitmapDrawable) {
         return bitmap
-    } else if (this is GifDrawable) {
+    } else if (this is FrameSequenceDrawable) {
         return firstFrame
     }
     throw IllegalArgumentException("Unknown drawable type.")
